@@ -1,0 +1,31 @@
+.title {
+  font-size: 3rem;
+  font-weight: bold;
+}
+
+.title .job {
+  color: black;
+}
+
+.title .hub {
+  color: white;
+  background-color: orange;
+  padding: 0 10px;
+  border-radius: 6px;
+}
+
+
+.input{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+}
+
+.input-box{
+    display: inline;
+    border-radius: 10px;
+    width: 80%;
+    margin:8px;
+}
+ 
