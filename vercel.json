@@ -1,27 +1,21 @@
-{ 
+{
   "version": 2,
   "builds": [
     {
       "src": "jobhub/wsgi.py",
-      "use": "@vercel/python",
-      "config": { "maxLambdaSize": "15mb", "runtime": "python3.9" }
-    },
-    {
-      "src": "build_files.sh",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "staticfiles"
-      }
+      "use": "@vercel/python"
     }
   ],
   "routes": [
     {
-      "src": "/static/(.*)",
-      "dest": "/static/$1"
-    },
-    {
       "src": "/(.*)",
       "dest": "jobhub/wsgi.py"
     }
-  ]
+  ],
+  "buildCommand": "pip install -r requirements.txt && python manage.py migrate",
+  "env": {
+    "DJANGO_SETTINGS_MODULE": "jobhub.settings",
+    "SECRET_KEY": "django-insecure-^t2*w+*cd2-vy-u_6=yc3+u%5dxifitz8kd_a(5rnv#)@(*xb2",
+    "DEBUG": "false"
+  }
 }
