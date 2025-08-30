@@ -1,15 +1,12 @@
 {
-  "builds": [
-    {
-      "src": "jobhub/jobhub/wsgi.py",
-      "use": "@vercel/python",
-      "config": { "maxLambdaSize": "15mb", "runtime": "python3.9" }
+  "functions": {
+    "api/index.py": {
+      "runtime": "python3.9",
+      "maxDuration": 15,
+      "memory": 1024
     }
-  ],
+  },
   "routes": [
-    {
-      "src": "/.*",
-      "dest": "jobhub/jobhub/wsgi.py"
-    }
+    { "src": "/(.*)", "dest": "api/index.py" }
   ]
 }
