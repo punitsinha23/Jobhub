@@ -1,1 +1,1 @@
-web: gunicorn jobhub.jobhub.wsgi --log-file -
+web: gunicorn Jobhub.wsgi --log-file -
