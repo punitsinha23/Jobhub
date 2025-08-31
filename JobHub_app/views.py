@@ -1,19 +1,18 @@
+# views.py
+import urllib.parse
 from django.shortcuts import render
-import asyncio
+from django.views.decorators.csrf import csrf_exempt
+from django.http import StreamingHttpResponse, JsonResponse
 from .services.crawlers import (
     linkdin_crawler, remoteok_crawler, indeed_crawler,
     weworkremotely_crawler, timesjobs_crawler, internshala_crawler
 )
-from django.http import StreamingHttpResponse, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 import requests
 import json
-import re
-import dotenv
 import os
+import dotenv
 
-dotenv.load_dotenv
-
+dotenv.load_dotenv()
 API_KEY = os.getenv('API_KEY')
 ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
 MODEL = "deepseek/deepseek-chat-v3-0324"
@@ -21,54 +20,48 @@ MODEL = "deepseek/deepseek-chat-v3-0324"
 SYSTEM_PROMPT = '''
 You are an industry expert in job recruitment and a friendly, funny advisor. 
 - Only answer job-related queries.
-- Be lighthearted, funny, uplifting, and approachable in your tone.
+- Be lighthearted, funny, uplifting, and approachable.
 - Ask clarifying questions only if absolutely necessary, but focus on giving helpful recommendations.
 - Provide multiple job recommendations whenever possible, from different sites on the internet.
 - Be professional and concise, but add friendly commentary.
 - Include links to the jobs when possible.
-- Keep light humor in intro/outro.
-- Make the actual listings short, clear, and professional.
-- Help the user find opportunities efficiently without overwhelming them with too many questions.
 - Format each job listing as: Job Title | Company | Location | [Apply Here](link)
 '''
-
 
 
 def home(request):
     results = []
     selected_site = ""
     job_query = ""
-    loading = False  
+    location = ""
+    
+    sites = ['linkdin', 'remoteok', 'timesjobs', 'internshala', 'indeed', 'weworkremotely']
 
     if request.method == "POST":
         job_query = request.POST.get("job", "")
-        selected_site = request.POST.get("site", "").lower()
-        location = request.POST.get('location')
-        loading = True  
+        selected_site = request.POST.get("site", "")
+        location = request.POST.get("location", "")
 
-        
-        if selected_site == 'linkdin':
-            results = asyncio.run(linkdin_crawler(job_query , location))
-        elif selected_site == 'indeed':
-            results = asyncio.run(indeed_crawler(job_query , location))
-        elif selected_site == 'remoteok':
-            results = asyncio.run(remoteok_crawler(job_query))
-        elif selected_site == 'weworkremotely':
-            results = asyncio.run(weworkremotely_crawler(job_query))
-        elif selected_site == 'timesjobs':
-            results = asyncio.run(timesjobs_crawler(job_query))
-        elif selected_site == 'internshala':
-            results = asyncio.run(internshala_crawler(job_query))
-        else:
-            results = []
+        # Your crawling logic here
+        if selected_site == "linkdin":
+            results = linkdin_crawler(job_query, location)
+        elif selected_site == "remoteok":
+            results = remoteok_crawler(job_query)
+        elif selected_site == "timesjobs":
+            results = timesjobs_crawler(job_query)
+        elif selected_site == "internshala":
+            results = internshala_crawler(job_query)
+        elif selected_site == "indeed":
+            results = indeed_crawler(job_query, location)
+        elif selected_site == "weworkremotely":
+            results = weworkremotely_crawler(job_query)
 
-        loading = False  
-
-    return render(request, 'home.html', {
+    return render(request, "home.html", {
         "results": results,
         "selected_site": selected_site,
         "job_query": job_query,
-        "loading": loading,      
+        "location": location,
+        "sites": sites,  # <---- important
     })
 
 
@@ -77,7 +70,7 @@ def chat_bot(request):
     if request.method == "GET":
         return render(request, "chatbot.html")
 
-    elif request.method == "POST":
+    if request.method == "POST":
         try:
             data = json.loads(request.body.decode("utf-8"))
         except json.JSONDecodeError:
