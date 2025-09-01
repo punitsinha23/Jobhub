@@ -28,4 +28,94 @@
     width: 80%;
     margin:8px;
 }
+
+/* Search form */
+.search-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.search-form input,
+.search-form select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.search-form button {
+    padding: 8px 15px;
+    background: #ff6600;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.search-form button:hover {
+    background: #e65c00;
+}
+
+/* Job list */
+.job-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.job-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    background: #fafafa;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.job-info h3 {
+    margin: 0;
+    color: #333;
+}
+
+.job-info p {
+    margin: 3px 0;
+    color: #555;
+}
+
+.job-info .posted {
+    font-size: 0.9em;
+    color: #888;
+}
+
+/* Apply button */
+.apply-btn {
+    padding: 10px 20px;
+    background: #ff6600;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 6px;
+    transition: background 0.3s;
+}
+
+.apply-btn:hover {
+    background: #e65c00;
+}
+
+/* Pagination */
+.pagination {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.pagination a {
+    margin: 0 10px;
+    text-decoration: none;
+    color: #0073e6;
+    font-weight: bold;
+}
+
  

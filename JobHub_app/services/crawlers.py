@@ -1,166 +1,136 @@
-import urllib.parse
-from patchright.sync_api import sync_playwright
+import requests
 from bs4 import BeautifulSoup
+from datetime import datetime
 
-# ---------------------------
-# Generic scraper function
-# ---------------------------
-def scrape_page(url, schema):
-    """Generic scraper using Playwright + BeautifulSoup according to a schema."""
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
-        page.goto(url, timeout=60000)
-        html = page.content()
-        browser.close()
+def format_remoteok_date(iso_date: str) -> str:
+    try:
+        dt = datetime.fromisoformat(iso_date.replace("Z", "+00:00"))
+        return dt.strftime("%d %b %Y, %I:%M %p")  # Example: 21 Aug 2025, 04:00 PM
+    except:
+        return "Unknown"
 
-    soup = BeautifulSoup(html, "html.parser")
-    results = []
-    for element in soup.select(schema["baseSelector"]):
-        item = {}
-        for field in schema["fields"]:
-            node = element.select_one(field["selector"])
-            if not node:
-                item[field["name"]] = ""
+
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/118.0.0.0 Safari/537.36"
+    )
+}
+
+def linkedin_crawler(job: str, location: str = "", start: int = 0):
+    url = "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
+    params = {"keywords": job, "location": location, "start": start}
+
+    r = requests.get(url, headers=HEADERS, params=params, timeout=15)
+    if r.status_code != 200:
+        print(f"LinkedIn error: {r.status_code}")
+        return []
+
+    soup = BeautifulSoup(r.text, "html.parser")
+    jobs = []
+
+    for card in soup.select("li"):
+        title = card.select_one("h3.base-search-card__title")
+        company = card.select_one("h4.base-search-card__subtitle")
+        loc = card.select_one("span.job-search-card__location")
+        link = card.select_one("a.base-card__full-link")
+        posted = card.select_one("time")
+
+        jobs.append({
+            "title": title.get_text(strip=True) if title else "No Title",
+            "company": company.get_text(strip=True) if company else "Unknown",
+            "location": loc.get_text(strip=True) if loc else "",
+            "url": link["href"] if link else "#",
+            "posted": posted.get_text(strip=True) if posted else "Unknown"
+        })
+
+    return jobs
+
+def internshala_crawler(query: str, location: str = "", start: int = 1):
+    """
+    Crawl Internshala internships based on query and location.
+    Returns a list of dicts with title, company, location, stipend, duration, posted date, and URL.
+    """
+    url = "https://internshala.com/internships"
+    params = {
+        "q": query,
+        "l": location,
+        "page": start
+    }
+
+    r = requests.get(url, headers=HEADERS, params=params, timeout=15)
+    if r.status_code != 200:
+        print(f"Internshala error: {r.status_code}")
+        return []
+
+    soup = BeautifulSoup(r.text, "html.parser")
+    jobs = []
+
+    for card in soup.select(".individual_internship"):
+        title_tag = card.select_one(".job-internship-name a")
+        company_tag = card.select_one(".company-name")
+        location_tag = card.select_one(".locations a")
+        stipend_tag = card.select_one(".stipend")
+        duration_tag = card.select_one(".ic-16-calendar + span")
+        posted_tag = card.select_one(".status-success span")
+
+        title = title_tag.get_text(strip=True) if title_tag else "No Title"
+        company = company_tag.get_text(strip=True) if company_tag else "Unknown"
+        location = location_tag.get_text(strip=True) if location_tag else "Not specified"
+        stipend = stipend_tag.get_text(strip=True) if stipend_tag else "Unpaid"
+        duration = duration_tag.get_text(strip=True) if duration_tag else "Not mentioned"
+        posted = posted_tag.get_text(strip=True) if posted_tag else "Unknown"
+        url = "https://internshala.com" + title_tag["href"] if title_tag else "#"
+
+        jobs.append({
+            "title": title,
+            "company": company,
+            "location": location,
+            "stipend": stipend,
+            "duration": duration,
+            "posted": posted,
+            "url": url
+        })
+   
+    return jobs
+
+def remoteok_crawler(query: str, location: str = "", start: int = 0, per_page: int = 25):
+    """
+    Crawl RemoteOK jobs based on query and optional location.
+    Parameters:
+        query: job title or keywords
+        location: optional location filter
+        start: starting index for pagination
+        per_page: number of jobs to return per page
+    Returns a list of dicts: title, company, location, posted, salary, url
+    """
+    tags = query.lower().replace(" ", ",")
+    url = f"https://remoteok.com/api?tags={tags}"
+
+    r = requests.get(url, headers=HEADERS, timeout=15)
+    if r.status_code != 200:
+        print(f"RemoteOK error: {r.status_code}")
+        return []
+
+    data = r.json()
+    jobs = []
+
+    for job in data[1:]: 
+        job_location = job.get("location", "Remote")
+        if location:
+            if location.lower() not in job_location.lower():
                 continue
-            if field["type"] == "text":
-                item[field["name"]] = node.get_text(strip=True)
-            elif field["type"] == "attribute":
-                item[field["name"]] = node.get(field["attribute"], "")
-        results.append(item)
-    return results
 
-# ---------------------------
-# Filter function
-# ---------------------------
-def filter_jobs(jobs, title_keyword=None, location_keyword=None):
-    """Filter jobs by title and/or location."""
-    filtered = []
-    for job in jobs:
-        title_match = True
-        location_match = True
+        jobs.append({
+            "title": job.get("position", "No Title"),
+            "company": job.get("company", "Unknown"),
+            "location": job_location,
+            "posted": format_remoteok_date(job.get("date", "Unknown")),
+            "salary": job.get("salary", "Not specified"),
+            "url": "https://remoteok.com" + job.get("url", "#")
+        })
 
-        if title_keyword:
-            title_match = title_keyword.lower() in job.get("title", "").lower()
-        if location_keyword:
-            location_match = location_keyword.lower() in job.get("location", "").lower()
-
-        if title_match and location_match:
-            filtered.append(job)
-    return filtered
-
-# ---------------------------
-# Individual crawlers
-# ---------------------------
-def linkdin_crawler(title: str, location: str = ""):
-    title_encoded = urllib.parse.quote_plus(title)
-    location_encoded = urllib.parse.quote_plus(location + ", India") if location else ""
-    url = f"https://www.linkedin.com/jobs/search/?keywords={title_encoded}&location={location_encoded}"
-    schema = {
-        "baseSelector": "ul.jobs-search__results-list > li",
-        "fields": [
-            {"name": "title", "selector": "h3.base-search-card__title", "type": "text"},
-            {"name": "company", "selector": "h4.base-search-card__subtitle", "type": "text"},
-            {"name": "location", "selector": "span.job-search-card__location", "type": "text"},
-            {"name": "posted", "selector": "time", "type": "text"},
-            {"name": "url", "selector": "a.base-card__full-link", "type": "attribute", "attribute": "href"},
-        ],
-    }
-    return scrape_page(url, schema)
-
-def remoteok_crawler(search_term: str):
-    url = f"https://remoteok.com/remote-{search_term}-jobs"
-    schema = {
-    "baseSelector": "tr.job",
-    "fields": [
-        {"name": "title", "selector": "h2", "type": "text"},
-        {"name": "company", "selector": ".companyLink", "type": "text"},
-        {"name": "location", "selector": ".location", "type": "text"},
-        {"name": "date", "selector": "time", "type": "text"},
-        {"name": "url", "selector": "a.preventLink", "type": "attribute", "attribute": "href"},
-    ],
-}
-
-    jobs = scrape_page(url, schema)
-    for job in jobs:
-        if job.get("url", "").startswith("/"):
-            job["url"] = f"https://remoteok.com{job['url']}"
-    return jobs
-
-def indeed_crawler(title: str, location: str = ""):
-    title_encoded = urllib.parse.quote_plus(title)
-    location_encoded = urllib.parse.quote_plus(location) if location else ""
-    url = f"https://www.indeed.com/jobs?q={title_encoded}&l={location_encoded}"
-    schema = {
-    "baseSelector": "a.tapItem",  # anchor wrapper for each job card
-    "fields": [
-        {"name": "title", "selector": "h2.jobTitle span", "type": "text"},
-        {"name": "company", "selector": "span.companyName", "type": "text"},
-        {"name": "location", "selector": "div.companyLocation", "type": "text"},
-        {"name": "date", "selector": "span.date", "type": "text"},
-        {"name": "url", "selector": "a.tapItem", "type": "attribute", "attribute": "href"},
-    ],
-}
-
-    jobs = scrape_page(url, schema)
-    for job in jobs:
-        if job.get("url", "").startswith("/"):
-            job["url"] = f"https://www.indeed.com{job['url']}"
-    return jobs
-
-def weworkremotely_crawler(title: str):
-    url = f"https://weworkremotely.com/remote-jobs/search?term={title}"
-    schema = {
-    "baseSelector": "section.jobs li:not(.view-all)",  # avoid header/footer
-    "fields": [
-        {"name": "title", "selector": "span.title", "type": "text"},
-        {"name": "company", "selector": "span.company", "type": "text"},
-        {"name": "location", "selector": "span.region", "type": "text"},
-        {"name": "posted", "selector": "time", "type": "text"},
-        {"name": "url", "selector": "a", "type": "attribute", "attribute": "href"},
-    ],
-}
-
-    jobs = scrape_page(url, schema)
-    for job in jobs:
-        if job.get("url", "").startswith("/"):
-            job["url"] = f"https://weworkremotely.com{job['url']}"
-    return jobs
-
-def timesjobs_crawler(title: str):
-    url = f"https://www.timesjobs.com/candidate/job-search.html?searchType=personalizedSearch&from=submit&txtKeywords={title}&txtLocation="
-    schema = {
-        "baseSelector": "li.clearfix.job-bx.wht-shd-bx",
-        "fields": [
-            {"name": "title", "selector": "h2 a", "type": "text"},
-            {"name": "company", "selector": "h3.joblist-comp-name", "type": "text"},
-            {"name": "skills", "selector": "span.srp-skills", "type": "text"},
-            {"name": "experience", "selector": "ul.top-jd-dtl.clearfix li", "type": "text"},
-            {"name": "posted", "selector": "span.sim-posted span", "type": "text"},
-            {"name": "url", "selector": "h2 a", "type": "attribute", "attribute": "href"},
-        ],
-    }
-    jobs = scrape_page(url, schema)
-    for job in jobs:
-        if job.get("url", "").startswith("/"):
-            job["url"] = f"https://www.timesjobs.com{job['url']}"
-    return jobs
-
-def internshala_crawler(title: str):
-    url = f"https://internshala.com/internships/{title}-internship"
-    schema = {
-        "baseSelector": "div.individual_internship",
-        "fields": [
-            {"name": "title", "selector": "h3.job-internship-name a.job-title-href", "type": "text"},
-            {"name": "company", "selector": "p.company-name", "type": "text"},
-            {"name": "location", "selector": "div.row-1-item.locations a", "type": "text"},
-            {"name": "stipend", "selector": "span.stipend", "type": "text"},
-            {"name": "duration", "selector": "div.row-1-item span", "type": "text"},
-            {"name": "url", "selector": "h3.job-internship-name a.job-title-href", "type": "attribute", "attribute": "href"},
-        ],
-    }
-    jobs = scrape_page(url, schema)
-    for job in jobs:
-        if job.get("url", "").startswith("/"):
-            job["url"] = f"https://internshala.com{job['url']}"
-    return jobs
+    # Handle pagination using start and per_page
+    end_idx = start + per_page
+    return jobs[start:end_idx]

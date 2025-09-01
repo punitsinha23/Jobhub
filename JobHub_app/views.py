@@ -1,12 +1,8 @@
-# views.py
-import urllib.parse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.http import StreamingHttpResponse, JsonResponse
-from .services.crawlers import (
-    linkdin_crawler, remoteok_crawler, indeed_crawler,
-    weworkremotely_crawler, timesjobs_crawler, internshala_crawler
-)
+from .services.crawlers import linkedin_crawler, internshala_crawler, remoteok_crawler
+
 import requests
 import json
 import os
@@ -30,39 +26,32 @@ You are an industry expert in job recruitment and a friendly, funny advisor.
 
 
 def home(request):
+    job_query = request.GET.get("job", "")
+    location = request.GET.get("location", "")
+    selected_site = request.GET.get("site", "")
+    page = int(request.GET.get("page", 1)) 
+
     results = []
-    selected_site = ""
-    job_query = ""
-    location = ""
-    
-    sites = ['linkdin', 'remoteok', 'timesjobs', 'internshala', 'indeed', 'weworkremotely']
 
-    if request.method == "POST":
-        job_query = request.POST.get("job", "")
-        selected_site = request.POST.get("site", "")
-        location = request.POST.get("location", "")
+    if job_query and location and selected_site:
+        if selected_site == "linkedin":
+            start = (page - 1) * 25
+            results = linkedin_crawler(job_query, location, start=start)
 
-        # Your crawling logic here
-        if selected_site == "linkdin":
-            results = linkdin_crawler(job_query, location)
-        elif selected_site == "remoteok":
-            results = remoteok_crawler(job_query)
-        elif selected_site == "timesjobs":
-            results = timesjobs_crawler(job_query)
-        elif selected_site == "internshala":
-            results = internshala_crawler(job_query)
-        elif selected_site == "indeed":
-            results = indeed_crawler(job_query, location)
-        elif selected_site == "weworkremotely":
-            results = weworkremotely_crawler(job_query)
-
-    return render(request, "home.html", {
+        elif selected_site == 'internshala':
+            start = (page - 1)* 25
+            results = internshala_crawler(job_query, location, start=start)
+        elif selected_site == 'remoteok':
+            start = (page - 1) * 25
+            results = remoteok_crawler(job_query, location, start=0, per_page=25)
+    context = {
         "results": results,
-        "selected_site": selected_site,
         "job_query": job_query,
         "location": location,
-        "sites": sites,  # <---- important
-    })
+        "selected_site": selected_site,
+        "page": page,
+    }
+    return render(request, "home.html", context)
 
 
 @csrf_exempt
