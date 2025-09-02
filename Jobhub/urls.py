@@ -9,5 +9,4 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:  # only in dev
-    urlpatterns += [path("__reload__/", include("django_browser_reload.urls"))]
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
