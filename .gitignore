@@ -31,5 +31,4 @@ db.sqlite3
 Thumbs.db
 
 # Build / static files
-staticfiles/
 media/
