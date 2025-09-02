@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-am0-*^08v)sk+hnrr2mts!c5ix%y^8dcket7(bs(3ss7af^n0d'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['.vercel.app', '*']
 
@@ -39,8 +39,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'JobHub_app',
-    "django_browser_reload",
 ]
+if DEBUG:
+    INSTALLED_APPS += ["django_browser_reload"]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
