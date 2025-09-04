@@ -64,6 +64,10 @@ def home(request):
     return render(request, "home.html", context)
 
 
+def about(request):
+    return render(request,'about.html')
+
+
 @csrf_exempt
 def chat_bot(request):
     if request.method == "GET":

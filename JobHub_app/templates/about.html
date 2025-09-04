@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}About | JobHub{% endblock %}
+
+{% block content %}
+
+<!-- AOS Animations -->
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+<div class="container my-5">
+
+  <!-- Hero Section -->
+  <div class="text-center py-5" data-aos="fade-up" data-aos-duration="1000">
+    <h1 class="fw-bold display-5 text-dark">About JobHub</h1>
+    <p class="lead text-muted mt-3">
+      Your one-stop platform to find jobs, internships, and remote opportunities with ease.
+    </p>
+  </div>
+
+  <!-- Features Section -->
+  <div class="row g-4 mt-4">
+    <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="100">
+      <div class="card shadow-sm p-4 h-100 border-0 text-center">
+        <div class="mb-3">
+          <i class="bi bi-search text-primary" style="font-size: 2rem;"></i>
+        </div>
+        <h5 class="fw-bold">Smart Job Search</h5>
+        <p class="text-muted">Search jobs from multiple platforms like LinkedIn, Internshala, and RemoteOK — all in one place.</p>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="200">
+      <div class="card shadow-sm p-4 h-100 border-0 text-center">
+        <div class="mb-3">
+          <i class="bi bi-globe2 text-success" style="font-size: 2rem;"></i>
+        </div>
+        <h5 class="fw-bold">Switch Between Sites</h5>
+        <p class="text-muted">Easily toggle between different job websites to find the best opportunities for you.</p>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="300">
+      <div class="card shadow-sm p-4 h-100 border-0 text-center">
+        <div class="mb-3">
+          <i class="bi bi-robot text-warning" style="font-size: 2rem;"></i>
+        </div>
+        <h5 class="fw-bold">AI-Powered Chatbot</h5>
+        <p class="text-muted">Chat with JobBot to discover recommended jobs, internships, and career guidance instantly.</p>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="400">
+      <div class="card shadow-sm p-4 h-100 border-0 text-center">
+        <div class="mb-3">
+          <i class="bi bi-geo-alt text-danger" style="font-size: 2rem;"></i>
+        </div>
+        <h5 class="fw-bold">Filter by Location</h5>
+        <p class="text-muted">Find relevant opportunities near you or explore remote jobs based on your preferences.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Call to Action -->
+  <div class="text-center mt-5" data-aos="zoom-in">
+    <h3 class="fw-bold text-dark">Start Your Journey with JobHub</h3>
+    <p class="text-muted">Find the right job faster, smarter, and simpler.</p>
+    <a href="{% url 'home' %}" class="btn btn-warning fw-bold px-4 py-2 mt-2">Search Jobs Now</a>
+  </div>
+
+</div>
+
+<!-- AOS Script -->
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+  AOS.init();
+</script>
+
+{% endblock %}
