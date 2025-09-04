@@ -2,69 +2,144 @@
 {% load static %}
 {% block content %}
 
-<div class="container my-4">
+
+
+<div class="container my-5">
+
+    <!-- Hero Section -->
+    <div class="text-center py-5" data-aos="fade-up" data-aos-duration="1000">
+        <h1 class="fw-bold display-5 text-dark">Welcome to JobHub</h1>
+        <p class="lead text-muted">
+            Search jobs from LinkedIn, Internshala, and RemoteOK — all in one place.
+        </p>
+        <p class="text-secondary">
+            Find the right opportunities faster. Just type your job title, location, and choose a site to get started.
+        </p>
+    </div>
 
     <!-- Search Form -->
-    <form method="get" class="row g-3 align-items-center">
-        <div class="col-md-4">
-            <input type="text" class="form-control" name="job" placeholder="Job title" value="{{ job_query }}">
-        </div>
-        <div class="col-md-4">
-            <input type="text" class="form-control" name="location" placeholder="Location" value="{{ location }}">
-        </div>
-        <div class="col-md-3">
-            <select name="site" class="form-select">
-                <option value="">-- Select Site --</option>
-                <option value="linkedin" {% if selected_site == "linkedin" %}selected{% endif %}>LinkedIn</option>
-                <option value="internshala" {% if selected_site == "internshala" %}selected{% endif %}>Internshala</option>
-                <option value="remoteok" {% if selected_site == "remoteok" %}selected{% endif %}>Remoteok</option>
-            </select>
-        </div>
-        <div class="col-md-1 d-grid">
-            <button type="submit" class="btn btn-warning fw-bold">Search</button>
-        </div>
-    </form>
+    <div class="card shadow-sm p-4 mb-4" data-aos="zoom-in" data-aos-duration="1200">
+        <h4 class="mb-3 text-center text-primary fw-bold">Search for Jobs</h4>
+        <form method="get" class="row g-3 align-items-center">
+            <div class="col-md-4">
+                <input type="text" class="form-control" name="job" placeholder="Job title"
+                       value="{{ job_query|default:'' }}">
+            </div>
+            <div class="col-md-4">
+                <input type="text" class="form-control" name="location" placeholder="Location"
+                       value="{{ location|default:'' }}">
+            </div>
+            <div class="col-md-3">
+                <select name="site" class="form-select">
+                    <option value="">-- Select Site --</option>
+                    <option value="linkedin" {% if selected_site == "linkedin" %}selected{% endif %}>LinkedIn</option>
+                    <option value="internshala" {% if selected_site == "internshala" %}selected{% endif %}>Internshala</option>
+                    <option value="remoteok" {% if selected_site == "remoteok" %}selected{% endif %}>RemoteOK</option>
+                </select>
+            </div>
+            <div class="col-md-1 d-grid">
+                <button type="submit" class="btn btn-warning fw-bold">Search</button>
+            </div>
+        </form>
+    </div>
+
 
     <hr class="my-4">
 
+    <!-- Job Results -->
     {% if results %}
-        <!-- Job List -->
         <div class="row row-cols-1 row-cols-md-2 g-4">
             {% for job in results %}
-                <div class="col">
+                <div class="col" data-aos="fade-up" data-aos-duration="800">
                     <div class="card shadow-sm h-100">
                         <div class="card-body">
                             <h5 class="card-title text-primary">{{ job.title }}</h5>
                             <h6 class="card-subtitle mb-2 text-muted">{{ job.company }}</h6>
-                            <p class="card-text"><i class="bi bi-geo-alt-fill"></i> {{ job.location }}</p>
+                            <p class="card-text">
+                                <i class="bi bi-geo-alt-fill"></i> {{ job.location }}
+                            </p>
                             <p class="text-secondary small">Posted: {{ job.posted }}</p>
                         </div>
                         <div class="card-footer bg-transparent border-0 text-end">
-                            <a href="{{ job.url }}" target="_blank" class="btn btn-sm btn-warning mb-2" style="font-weight: bold;">Apply</a>
+                            <a href="{{ job.url }}" target="_blank" class="btn btn-sm btn-warning fw-bold">Apply</a>
                         </div>
                     </div>
                 </div>
             {% endfor %}
         </div>
 
-        <nav class="mt-4">
-    <ul class="pagination justify-content-center gap-3">
-        {% if page > 1 %}
-            <li class="page-item">
-                <a class="page-link" href="?job={{ job_query }}&location={{ location }}&site={{ selected_site }}&page={{ page|add:"-1" }}">⬅ Previous</a>
-            </li>
-        {% endif %}
-        <li class="page-item">
-            <a class="page-link" href="?job={{ job_query }}&location={{ location }}&site={{ selected_site }}&page={{ page|add:"1" }}">Next ➡</a>
-        </li>
-    </ul>
-</nav>
+        <!-- Pagination -->
+        <nav class="mt-4" data-aos="fade-up">
+            <ul class="pagination justify-content-center gap-3">
+                {% if page|default:1 > 1 %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="?job={{ job_query|default:'' }}&location={{ location|default:'' }}&site={{ selected_site|default:'' }}&page={{ page|default:1|add:'-1' }}">
+                            ⬅ Previous
+                        </a>
+                    </li>
+                {% endif %}
+                <li class="page-item">
+                    <a class="page-link"
+                       href="?job={{ job_query|default:'' }}&location={{ location|default:'' }}&site={{ selected_site|default:'' }}&page={{ page|default:1|add:'1' }}">
+                        Next ➡
+                    </a>
+                </li>
+            </ul>
+        </nav>
 
-
-    {% else %}
-        <div class="alert alert-info text-center">Welcom to Jobhub</div>
-    {% endif %}
+{% else %}     
+    <div class="row text-center mt-5 g-4">
+        <div class="col-md-4" data-aos="fade-right" data-aos-duration="1000">
+            <div class="card shadow-sm p-4 h-100 border-3">
+                <h5 class="fw-bold text-primary">💻 Software Jobs</h5>
+                <p class="text-muted">Find tech roles across multiple platforms.</p>
+            </div>
+        </div>
+        <div class="col-md-4" data-aos="fade-up" data-aos-duration="1000">
+            <div class="card shadow-sm p-4 h-100 border-3">
+                <h5 class="fw-bold text-success">🎓 Internships</h5>
+                <p class="text-muted">Kickstart your career with the right opportunities.</p>
+            </div>
+        </div>
+        <div class="col-md-4" data-aos="fade-left" data-aos-duration="1000">
+            <div class="card shadow-sm p-4 h-100 border-3">
+                <h5 class="fw-bold text-warning">🌍 Remote Work</h5>
+                <p class="text-muted">Work from anywhere in the world, anytime.</p>
+            </div>
+        </div>
+    </div>   
+{% endif %}
+<div class="container my-5" data-aos="fade-up" data-aos-duration="1000">
+  <div class="card shadow-lg border-0 rounded-3">
+    <div class="row g-0 align-items-center">
+      <div class="col-md-6 p-5">
+        <h2 class="fw-bold text-primary mb-3">Meet JobBot</h2>
+        <p class="text-muted mb-4 border-3">
+          Not sure what to search for?  
+          Let our chatbot guide you to the right jobs, internships, and resources.  
+          Just start a conversation and get instant suggestions!
+        </p>
+        <a href="{% url 'chat' %}" class="btn btn-warning fw-bold px-4 py-2">
+          Try the Chatbot
+        </a>
+      </div>
+      <div class="col-md-6 text-center p-4" data-aos="zoom-in">
+        <img src="{% static 'images/chatbot.png' %}" 
+             alt="Chatbot" 
+             class="img-fluid" style="max-height: 250px;">
+      </div>
+    </div>
+  </div>
+</div>
 
 </div>
+
+
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+  AOS.init();
+</script>
 
 {% endblock %}

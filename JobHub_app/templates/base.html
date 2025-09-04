@@ -4,6 +4,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link href="{% static 'main.css' %}" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 
@@ -28,9 +29,6 @@
         </div>
         </nav>
     </div>
-    <h1 class="title text-center mb-6 mt-4">
-    <span class="job">Job</span><span class="hub">Hub</span>
-    </h1>
     <div class="container my-4">
       {% block content %}{% endblock %}
     </div>
