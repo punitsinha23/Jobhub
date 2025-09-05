@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.http import StreamingHttpResponse, JsonResponse
-from .services.crawlers import linkedin_crawler, internshala_crawler, remoteok_crawler #timesjobs_crawler, indeed_crawler
+from .services.crawlers import linkedin_crawler, internshala_crawler, remoteok_crawler,timesjobs_crawler
 
 import requests
 import json
@@ -54,10 +54,14 @@ def home(request):
         elif selected_site == 'remoteok':
             start = (page - 1) * 25
             results = remoteok_crawler(job_query, location, start=0, per_page=25)
-        #elif selected_site == 'timesjobs':
-            #results = timesjobs_crawler(job_query, location, start=0)    
-        #elif selected_site == 'indeed':
-            #results = indeed_crawler(job_query, location, start=0)       
+        elif selected_site == 'timesjobs':
+            try:
+                results = timesjobs_crawler(job_query, location, start_page=0)
+            except Exception as e:
+                print("TimesJobs crawler failed in view:", e)
+                results = []
+            
+        
     context = {
         "results": results,
         "job_query": job_query,

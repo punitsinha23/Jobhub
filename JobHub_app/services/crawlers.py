@@ -164,26 +164,12 @@ def remoteok_crawler(job: str = "", location: str = "", start: int = 0, per_page
             "company": company or "Unknown",
             "location": "Remote",
             "url": job_url,
-            "posted": posted
+            "posted": format_date(posted)
         })
 
     return jobs[start:start + per_page]
 
-
-
-'''def timesjobs_crawler(title: str, location: str = "", start_page: int = 1, limit: int = 10):
-    """
-    Scrape TimesJobs for a given job title and location.
-    
-    Args:
-        title (str): Job title or keywords
-        location (str): Location filter (optional)
-        start_page (int): Page number (pagination)
-        limit (int): Max number of jobs to return
-
-    Returns:
-        list of dict: Each dict has title, company, location, posted, url
-    """
+def timesjobs_crawler(title: str, location: str = "", start_page: int = 1, limit: int = 10):
     url = "https://www.timesjobs.com/candidate/job-search.html"
     params = {
         "searchType": "personalizedSearch",
@@ -194,9 +180,11 @@ def remoteok_crawler(job: str = "", location: str = "", start: int = 0, per_page
         "startPage": start_page,
     }
 
-    res = requests.get(url, headers=HEADERS, params=params, timeout=15)
-    if res.status_code != 200:
-        print(f"Error: {res.status_code}")
+    try:
+        res = requests.get(url, headers=HEADERS, params=params, timeout=15)
+        res.raise_for_status()
+    except Exception as e:
+        print("TimesJobs request failed:", e)
         return []
 
     soup = BeautifulSoup(res.text, "html.parser")
@@ -204,85 +192,32 @@ def remoteok_crawler(job: str = "", location: str = "", start: int = 0, per_page
 
     jobs = []
     for card in cards[:limit]:
-        job_title = card.h2.text.strip() if card.h2 else "No title"
-        company = card.find("h3", class_="joblist-comp-name")
-        company = company.text.strip() if company else "Unknown"
-        loc = card.find("ul", class_="top-jd-dtl clearfix")
-        loc = loc.li.text.strip() if loc and loc.li else "N/A"
-        posted = card.find("span", class_="sim-posted")
-        posted = format_date(posted.text.strip() if posted else "N/A")
-        url = card.h2.a["href"] if card.h2 and card.h2.a else "#"
+        try:
+            job_title = card.h2.get_text(strip=True) if card.h2 else "No title"
 
-        jobs.append({
-            "title": job_title,
-            "company": company,
-            "location": loc,
-            "posted": posted,
-            "url": url
-        })
+            company_tag = card.find("h3", class_="joblist-comp-name")
+            company = company_tag.get_text(strip=True) if company_tag else "Unknown"
+
+            loc_ul = card.find("ul", class_="top-jd-dtl clearfix")
+            loc = loc_ul.li.get_text(strip=True) if loc_ul and loc_ul.li else "N/A"
+
+            posted_tag = card.find("span", class_="sim-posted")
+            posted = format_date(posted_tag.get_text(strip=True) if posted_tag else "N/A")
+
+            url_tag = card.h2.a
+            job_url = url_tag["href"] if url_tag else "#"
+
+            jobs.append({
+                "title": job_title,
+                "company": company,
+                "location": loc,
+                "posted": posted,
+                "url": job_url
+            })
+
+        except Exception as e:
+            # Skip card if parsing fails
+            print("Skipping a card due to error:", e)
+            continue
 
     return jobs
-
-def indeed_crawler(job, location="", start=0):
-    options = webdriver.ChromeOptions()
-    options.add_argument("--headless")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--window-size=1920,1080")
-    
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-    
-    url = f"https://www.indeed.com/jobs?q={job}&l={location}&start={start}"
-    driver.get(url)
-    
-    # Updated job card selector (current as of 2025)
-    job_card_selector = "a.tapItem"  # Each job card is now an <a> with class 'tapItem'
-
-    try:
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_all_elements_located((By.CSS_SELECTOR, job_card_selector))
-        )
-    except:
-        print("No jobs found or page structure changed.")
-        driver.quit()
-        return []
-
-    jobs = []
-    cards = driver.find_elements(By.CSS_SELECTOR, job_card_selector)
-    
-    for card in cards:
-        try:
-            title = card.find_element(By.CSS_SELECTOR, "h2.jobTitle span").text
-        except:
-            title = "No Title"
-        
-        try:
-            company = card.find_element(By.CSS_SELECTOR, "span.companyName").text
-        except:
-            company = "Unknown"
-        
-        try:
-            loc = card.find_element(By.CSS_SELECTOR, "div.companyLocation").text
-        except:
-            loc = "Not specified"
-        
-        try:
-            link = card.get_attribute("href")
-        except:
-            link = "#"
-        
-        try:
-            salary = card.find_element(By.CSS_SELECTOR, "div.metadata.salary-snippet-container").text
-        except:
-            salary = "Not disclosed"
-        
-        jobs.append({
-            "title": title,
-            "company": company,
-            "location": loc,
-            "url": link,
-            "salary": salary
-        })
-    
-    driver.quit()
-    return jobs'''
