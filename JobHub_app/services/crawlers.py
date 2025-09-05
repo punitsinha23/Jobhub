@@ -134,24 +134,31 @@ def internshala_crawler(query: str, location: str = "", page: int = 1):
     return jobs
 
 
+import requests
+
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+}
+
 def remoteok_crawler(job: str = "", location: str = "", start: int = 0, per_page: int = 25):
     url = "https://remoteok.com/api"
-    r = requests.get(url, headers=HEADERS, timeout=15)
-
-    if r.status_code != 200:
-        print(f"RemoteOK error: {r.status_code}")
+    try:
+        r = requests.get(url, headers=HEADERS, timeout=15)
+        r.raise_for_status()
+    except requests.RequestException as e:
+        print(f"Request error: {e}")
         return []
 
     jobs = []
     data = r.json()
 
-    for card in data[1:]:  # skip metadata
+    for card in data[1:]:
         title = card.get("position", "")
         company = card.get("company", "")
         tags = " ".join(card.get("tags", []))
         description = card.get("description", "")
         posted = card.get("date", "Unknown")
-        url = card.get("url", "#")
+        job_url = card.get("url", "#")
 
         if job:
             text_blob = f"{title} {company} {tags} {description}".lower()
@@ -162,11 +169,12 @@ def remoteok_crawler(job: str = "", location: str = "", start: int = 0, per_page
             "title": title or "No Title",
             "company": company or "Unknown",
             "location": "Remote",
-            "url": url,
-            "posted": format_date(posted)
+            "url": job_url,
+            "posted": posted
         })
 
     return jobs[start:start + per_page]
+
 
 
 '''def timesjobs_crawler(title: str, location: str = "", start_page: int = 1, limit: int = 10):
