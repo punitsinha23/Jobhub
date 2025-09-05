@@ -134,12 +134,6 @@ def internshala_crawler(query: str, location: str = "", page: int = 1):
     return jobs
 
 
-import requests
-
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-}
-
 def remoteok_crawler(job: str = "", location: str = "", start: int = 0, per_page: int = 25):
     url = "https://remoteok.com/api"
     try:
