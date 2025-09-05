@@ -2,8 +2,6 @@
 {% load static %}
 {% block content %}
 
-
-
 <div class="container my-5">
 
     <!-- Hero Section -->
@@ -35,6 +33,8 @@
                     <option value="linkedin" {% if selected_site == "linkedin" %}selected{% endif %}>LinkedIn</option>
                     <option value="internshala" {% if selected_site == "internshala" %}selected{% endif %}>Internshala</option>
                     <option value="remoteok" {% if selected_site == "remoteok" %}selected{% endif %}>RemoteOK</option>
+                    <option value="timesjobs" {% if selected_site == "timesjobs" %}selected{% endif %}>Timesjobs</option>
+                    <option value="indeed" {% if selected_site == "indeed" %}selected{% endif %}>Indeed</option>
                 </select>
             </div>
             <div class="col-md-1 d-grid">
@@ -141,5 +141,30 @@
 <script>
   AOS.init();
 </script>
+
+
+<!-- Custom CSS for hover effects -->
+<style>
+  /* Smooth animation */
+  .card {
+    transition: all 0.3s ease-in-out;
+    border-radius: 12px; /* consistent rounded look */
+  }
+
+  /* Hover effect */
+  .card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    border: 1px solid #ffc107; /* yellow highlight on hover */
+  }
+
+  /* Make Apply button pop on hover */
+  .card-footer .btn:hover {
+    background-color: #e0a800 !important;
+    color: #fff !important;
+    transform: scale(1.05);
+    transition: all 0.2s ease-in-out;
+  }
+</style>
 
 {% endblock %}
